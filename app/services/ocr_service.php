@@ -134,7 +134,7 @@ function gemini_extract(string $imagePath, string $mime, ?string $activityDate =
                 CURLOPT_POST           => true,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CONNECTTIMEOUT => 15,
-                CURLOPT_TIMEOUT        => 110,
+                CURLOPT_TIMEOUT        => 25,   // dibatasi agar model cadangan sempat dicoba dalam batas 60 dtk Vercel
                 CURLOPT_HTTPHEADER     => [
                     'Content-Type: application/json',
                     'x-goog-api-key: ' . $apiKey,
@@ -152,7 +152,8 @@ function gemini_extract(string $imagePath, string $mime, ?string $activityDate =
             if (!$transient) {
                 break; // berhasil atau error permanen, tidak perlu mengulang model ini
             }
-            if ($try < $maxTries) {
+            // Jangan ulang jika sudah timeout: waktu terbatas untuk model cadangan.
+            if ($try < $maxTries && $errno !== CURLE_OPERATION_TIMEDOUT) {
                 sleep(3); // beri jeda sebelum mencoba lagi
             }
         }
